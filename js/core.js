@@ -409,18 +409,41 @@
       const zone = $('stickZone'), base = $('stick'), knob = $('knob');
       if (!zone) return;
       const R = 54, dead = 0.16;
+
+      const home = () => {
+        const w = window.innerWidth, h = window.innerHeight;
+        this.homeX = Math.max(84, Math.min(w * 0.15, 130));
+        this.homeY = h - Math.max(92, Math.min(h * 0.16, 140));
+        this.place(this.homeX, this.homeY);
+      };
+      this.place = (x, y) => {
+        if (!base) return;
+        base.style.left = x + 'px';
+        base.style.top = y + 'px';
+      };
+      home();
+
       zone.addEventListener('pointerdown', (e) => {
         if (S.HUD && S.HUD.dlg) return;
         e.preventDefault();
+        const r = base.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const grabPad = Math.hypot(e.clientX - cx, e.clientY - cy) < r.width * 0.72;
         this.stick.active = true;
         this.stick.id = e.pointerId;
-        this.stick.ox = e.clientX; this.stick.oy = e.clientY;
-        base.style.left = e.clientX + 'px';
-        base.style.top = e.clientY + 'px';
-        base.classList.remove('hidden');
+        base.classList.add('drag', 'active');
+        if (grabPad) {
+          // 直接抓住固定的盘子：从盘心起算，摇杆头不跳
+          this.stick.ox = cx; this.stick.oy = cy;
+        } else {
+          // 在左侧任意位置按下：盘子弹到手指下
+          this.place(e.clientX, e.clientY);
+          this.stick.ox = e.clientX; this.stick.oy = e.clientY;
+        }
         knob.style.transform = '';
         try { zone.setPointerCapture(e.pointerId); } catch (err) {}
       });
+
       zone.addEventListener('pointermove', (e) => {
         if (!this.stick.active || e.pointerId !== this.stick.id) return;
         e.preventDefault();
@@ -438,14 +461,18 @@
         this.stick.x = S.clamp(nx, -1, 1);
         this.stick.y = S.clamp(ny, -1, 1);
       });
+
       const end = (e) => {
-        if (e.pointerId !== this.stick.id) return;
-        this.stick.active = false; this.stick.x = 0; this.stick.y = 0;
-        base.classList.add('hidden');
+        if (this.stick.id !== null && e.pointerId !== this.stick.id) return;
+        this.stick.active = false; this.stick.x = 0; this.stick.y = 0; this.stick.id = null;
+        base.classList.remove('drag', 'active');
+        knob.style.transform = '';
+        this.place(this.homeX, this.homeY);   // 回位
       };
       zone.addEventListener('pointerup', end);
       zone.addEventListener('pointercancel', end);
       zone.addEventListener('lostpointercapture', end);
+      window.addEventListener('resize', () => { if (!this.stick.active) home(); });
 
       const bind = (id, key) => {
         const b = $(id);
@@ -471,6 +498,8 @@
       if (!t) return;
       t.classList.toggle('hidden', !on);
       requestAnimationFrame(() => t.classList.toggle('on', on));
+      if (on && this.place && this.homeX !== undefined) this.place(this.homeX, this.homeY);
+      if (!on) { this.stick.active = false; this.stick.x = 0; this.stick.y = 0; this.stick.id = null; }
     },
     setInteract(show) {
       const b = document.getElementById('tbInteract');

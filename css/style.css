@@ -597,3 +597,44 @@ body.touch .sk-key{display:none}
 
 .touch-only{display:none}
 body.touch .touch-only{display:block;color:rgba(127,216,201,.7)}
+
+/* ============ 虚拟摇杆：手势归属 + 常驻显示 ============ */
+/* 关键：不声明 touch-action，浏览器会把单指拖动当成页面平移并 pointercancel，
+   于是必须第二根手指才能"抢"回手势。全部标 none 后单指即可稳定拖动。 */
+#touch, #stickZone, #stick, .tbLayer, .tb{
+  touch-action:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+#stickZone{width:54%;height:80%;z-index:2}
+#stick{
+  z-index:1;
+  opacity:.62;
+  transition:opacity .2s,left .22s cubic-bezier(.22,.9,.3,1),top .22s cubic-bezier(.22,.9,.3,1);
+}
+#stick.hidden{opacity:0}
+#stick.active{opacity:1;transition:opacity .1s}
+#stick.drag{transition:opacity .1s,left 0s,top 0s}
+#stick i{transition:transform .16s cubic-bezier(.22,.9,.3,1)}
+#stick.drag i{transition:none}
+
+/* 触屏：把血条挪到底部中间，避让摇杆与技能键 */
+body.touch #vitals{
+  left:50%;right:auto;bottom:8px;
+  transform:translateX(-50%) scale(.8);
+  transform-origin:bottom center;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.55));
+}
+body.touch #hudPortrait{filter:none}
+
+/* 摇杆视觉：提高在草地/雪地上的辨识度 */
+#stick{
+  border:1.5px solid rgba(233,215,171,.5);
+  background:radial-gradient(circle, rgba(6,16,20,.34), rgba(6,16,20,.14) 62%, rgba(6,16,20,0) 74%);
+  box-shadow:inset 0 0 0 6px rgba(0,0,0,.10), 0 0 22px rgba(0,0,0,.25);
+}
+#stick i{
+  background:radial-gradient(circle at 38% 34%, #fbf0cf, #d8b36a 58%, #8e6f37);
+  box-shadow:0 0 0 2px rgba(18,12,6,.42), 0 0 20px rgba(233,215,171,.5), 0 4px 14px rgba(0,0,0,.55);
+}
+#stick.active i{box-shadow:0 0 0 2px rgba(18,12,6,.5), 0 0 26px rgba(150,240,225,.6), 0 4px 16px rgba(0,0,0,.6)}
