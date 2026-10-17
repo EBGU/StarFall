@@ -271,7 +271,7 @@
       setTimeout(() => $('title').classList.add('hidden'), 1100);
       document.body.classList.add('cine');
       S.HUD.show(true);
-      if (this.isTouch) { S.Touch.show(true); S.Touch.hint(); }
+      if (this.isTouch) S.Touch.show(true);
       clearTimeout(this._introHint);
       this._introHint = setTimeout(() => {
         if (S.HUD.dlg) S.HUD.hint(this.isTouch ? '轻触画面任意处　继续' : '点击画面任意处 / 空格　继续', 6);
@@ -290,7 +290,7 @@
       $('title').classList.add('gone');
       setTimeout(() => $('title').classList.add('hidden'), 1100);
       S.HUD.show(true);
-      if (this.isTouch) { S.Touch.show(true); S.Touch.hint(); }
+      if (this.isTouch) S.Touch.show(true);
       this.playerName = s.name || '衔星';
       this.fragsFound = s.frags || [];
       this.fragsFound.forEach((id) => { if (this.relics[id]) this.relics[id].got = true; });

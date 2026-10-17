@@ -64,7 +64,7 @@ git push -u origin main
 
 - **操作**：左半屏任意位置按住拖动 = 虚拟摇杆；右下四个键 `攻 / 风 / 星 / 疾`；靠近可交互物时多出 `触` 键。
 - **对话推进**：轻触屏幕任意处。
-- **横屏体验更好**：竖屏也能玩，进入游戏时顶部会提示一次「横屏体验更佳」。
+- **强制横屏**：竖屏时整屏被一层遮罩挡住，提示旋转手机；PWA 安装后 manifest.orientation = landscape 会在系统层面锁定横屏。遮罩底部保留一个很不起眼的「仍以竖屏继续」，防止玩家开了系统方向锁定后被卡死。
 - **声音**：iOS 必须在**用户点击后**才能出声——点「开始旅程」就会初始化音频，符合系统要求；切后台再回来会自动 resume。
 - **添加到主屏幕**：
   - iPhone：Safari → 分享 → 「添加到主屏幕」
@@ -88,6 +88,7 @@ git push -u origin main
 | 输入延迟 | 按钮用 `pointerdown` 立即触发，不用 `click` |
 | 页面行为 | `touch-action:none` 防止双指缩放/下拉刷新；`100dvh` 适配地址栏收缩；`overscroll-behavior:none` |
 | PWA | `manifest.webmanifest` + `sw.js`（stale-while-revalidate）+ 192/512/maskable 图标 |
+| 屏幕方向 | 竖屏遮罩闸门（ody.touch + orientation:portrait），安装版由 manifest 锁 landscape |
 | 音频 | `AudioContext` 在点击手势内创建；`visibilitychange` 时自动 resume |
 | 存档 | 仍是 localStorage（PWA 内同样有效）；换设备不会同步，属于已知限制 |
 

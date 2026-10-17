@@ -474,6 +474,21 @@
       zone.addEventListener('lostpointercapture', end);
       window.addEventListener('resize', () => { if (!this.stick.active) home(); });
 
+      // 强制横屏闸门：竖屏时挡住整屏；允许玩家自行放行（防方向锁定卡死）
+      const skip = document.getElementById('rgSkip');
+      if (skip) {
+        skip.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          document.body.classList.add('allow-portrait');
+          const g = document.getElementById('rotateGate');
+          if (g) g.style.display = 'none';
+          setTimeout(home, 60);
+        });
+      }
+      if (screen.orientation && screen.orientation.lock && document.fullscreenElement) {
+        try { screen.orientation.lock('landscape').catch(() => {}); } catch (err) {}
+      }
+
       const bind = (id, key) => {
         const b = $(id);
         if (!b) return;

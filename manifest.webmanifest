@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "拾星纪 · 长庚",
   "short_name": "拾星纪",
   "description": "云海之上的开放世界叙事原型：断裂的星环、被取走的名字。",
@@ -7,7 +7,7 @@
   "scope": "./",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone", "minimal-ui"],
-  "orientation": "any",
+  "orientation": "landscape",
   "background_color": "#05080a",
   "theme_color": "#0a1418",
   "categories": ["games", "entertainment"],
