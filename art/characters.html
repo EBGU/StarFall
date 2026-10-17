@@ -1,0 +1,114 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>拾星纪 · 长庚 —— 角色立绘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--gold:#e9d7ab;--paper:#efe6d2;
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#070d10;color:var(--paper);font-family:var(--serif)}
+  body{padding:54px 40px 80px;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(60,120,120,.16), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(120,80,60,.10), transparent 60%),
+      #070d10}
+  h1{font-weight:400;font-size:34px;letter-spacing:.5em;text-align:center;margin:0 0 6px;
+     background:linear-gradient(180deg,#fff9ec,#e2caa0 55%,#a9854d);
+     -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{text-align:center;font-size:10px;letter-spacing:.44em;color:rgba(233,215,171,.45);margin-bottom:8px}
+  .rule{width:min(760px,80%);height:1px;margin:22px auto 40px;
+    background:linear-gradient(90deg,transparent,rgba(233,215,171,.55),transparent)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;max-width:1560px;margin:0 auto}
+  @media (max-width:1300px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .card{position:relative;border:1px solid rgba(233,215,171,.14);
+    background:linear-gradient(180deg,rgba(12,24,28,.92),rgba(6,12,15,.96));
+    padding:14px 14px 18px;overflow:hidden;transition:.4s cubic-bezier(.2,.8,.2,1)}
+  .card:hover{border-color:rgba(233,215,171,.45);transform:translateY(-4px);
+    box-shadow:0 20px 50px rgba(0,0,0,.6)}
+  .card:before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse 70% 50% at 50% 22%, rgba(120,220,215,.10), transparent 70%)}
+  .pf{position:relative;width:100%;aspect-ratio:512/600;display:flex;align-items:flex-end;justify-content:center}
+  .pf canvas{width:100%;height:100%;display:block;
+    filter:drop-shadow(0 12px 28px rgba(0,0,0,.6))}
+  .nm{font-size:22px;letter-spacing:.26em;color:#fff6e2;margin:10px 0 2px;text-align:center;
+    text-shadow:0 0 26px rgba(255,236,200,.25)}
+  .tt{font-size:10px;letter-spacing:.28em;color:rgba(233,215,171,.5);text-align:center}
+  .qt{margin-top:14px;padding-top:12px;border-top:1px solid rgba(233,215,171,.12);
+    font-size:12.5px;line-height:1.95;letter-spacing:.08em;color:rgba(239,230,210,.72);
+    min-height:64px;text-align:center}
+  .foot{margin-top:46px;text-align:center;font-size:10px;letter-spacing:.3em;color:rgba(239,230,210,.25)}
+  body.exported{padding:0;background:#fff}
+  body.exported .grid{display:none}
+  body.exported img{display:block;width:512px;height:600px}
+</style>
+</head>
+<body>
+<h1>拾 星 纪</h1>
+<div class="sub">STARFALL · CHANGENG &nbsp;—&nbsp; CHARACTER SHEET</div>
+<div class="rule"></div>
+<div class="grid" id="grid"></div>
+<div class="foot">全部立绘由 Canvas 2D 程序化绘制 · 512 × 600 · 透明背景 · 可直接另存为 PNG</div>
+
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/render.js"></script>
+<script>
+(function () {
+  const S = window.STAR;
+  const HAIR = { xu: 'long', qingwu: 'braid', lan: 'pony', sun: 'short', bailu: 'long', cen: 'long', ache: 'short' };
+  for (const k in HAIR) if (S.CHARS[k]) S.CHARS[k].hair = HAIR[k];
+
+  const ROSTER = [
+    { id: 'xu', quote: '我不记得自己叫什么。……那就先叫「衔星」吧。' },
+    { id: 'qingwu', quote: '只要还有人写着，他就不算真的没了。……对吧？' },
+    { id: 'lan', quote: '我在找我的名字。已经找了很久了。' },
+    { id: 'sun', quote: '我不睡。睡着了，就会忘。' },
+    { id: 'bailu', quote: '您要我看着他们今晚就消失吗？' },
+    { id: 'cen', quote: '若你听见了，请别急着想起。' },
+    { id: 'ache', quote: '……姐姐？' }
+  ];
+
+  const q = new URLSearchParams(location.search || '');
+
+  // 离屏画布：统一绘制，再决定输出
+  const off = document.createElement('canvas');
+  off.width = 512; off.height = 600;
+
+  if (q.get('export')) {
+    let html = '';
+    ROSTER.forEach((r) => {
+      ROSTER.forEach(() => {});
+      S.Render.drawPortrait(off, r.id, 0);
+      html += '<img data-id="' + r.id + '" src="' + off.toDataURL('image/png') + '">';
+    });
+    document.body.className = 'exported';
+    document.body.innerHTML = html;
+    return;
+  }
+
+  const grid = document.getElementById('grid');
+  ROSTER.forEach((r) => {
+    const ch = S.CHARS[r.id];
+    const card = document.createElement('div');
+    card.className = 'card';
+    const pf = document.createElement('div');
+    pf.className = 'pf';
+    const cv = document.createElement('canvas');
+    cv.width = 512; cv.height = 600;
+    pf.appendChild(cv);
+    card.appendChild(pf);
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = ch.name;
+    const tt = document.createElement('div'); tt.className = 'tt'; tt.textContent = ch.title || '';
+    const qt = document.createElement('div'); qt.className = 'qt'; qt.textContent = r.quote;
+    card.appendChild(nm); card.appendChild(tt); card.appendChild(qt);
+    grid.appendChild(card);
+    requestAnimationFrame(() => S.Render.drawPortrait(cv, r.id, 0));
+  });
+})();
+</script>
+</body>
+</html>

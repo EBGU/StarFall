@@ -1,0 +1,203 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a1418">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="拾星纪">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>拾星纪 · 长庚</title>
+<meta name="description" content="一座悬于云海之上的大陆，一道断裂的星环，一场没有声音的退潮。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700;900&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<script>
+window.addEventListener('error', function (e) {
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;z-index:99999;left:0;top:0;right:0;background:#3a0d12;color:#ffc8cc;font:12px/1.5 monospace;padding:10px;white-space:pre-wrap';
+  d.textContent = 'JS ERROR: ' + e.message + '\n' + (e.filename || '') + ':' + e.lineno + ':' + e.colno + '\n' + ((e.error && e.error.stack) || '');
+  document.body.appendChild(d);
+});
+</script>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <!-- 色彩分级 / 暗角 / 颗粒 -->
+  <div id="grade"></div>
+  <div id="grain"></div>
+  <div id="bars"><i class="bar top"></i><i class="bar bot"></i></div>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <div id="questBox">
+      <div class="q-head">
+        <span class="q-diamond"></span>
+        <span class="q-chapter" id="qChapter">序章</span>
+      </div>
+      <div class="q-title" id="qTitle">陨星落在无名之地</div>
+      <ul class="q-objs" id="qObjs"></ul>
+      <div class="q-dist" id="qDist"></div>
+    </div>
+
+    <div id="mapBox">
+      <div class="map-ring"></div>
+      <canvas id="minimap" width="188" height="188"></canvas>
+      <div class="map-region" id="regionName">拾星原</div>
+      <div class="map-weather" id="regionSub">晴 · 风起</div>
+    </div>
+
+    <div id="vitals">
+      <div class="portrait-frame"><canvas id="hudPortrait" width="128" height="128"></canvas></div>
+      <div class="vit-right">
+        <div class="vit-name">衔星 <span class="vit-lv">Lv.1</span></div>
+        <div class="hpbar"><i id="hpFill"></i><span id="hpText">100 / 100</span></div>
+        <div class="stbar"><i id="stFill"></i></div>
+        <div class="enbar"><i id="enFill"></i></div>
+      </div>
+    </div>
+
+    <div id="skills">
+      <div class="skill" data-k="E"><div class="sk-ico sk-e">风</div><div class="sk-cd" id="cdE"></div><div class="sk-key">E</div><div class="sk-name">听风</div></div>
+      <div class="skill" data-k="Q"><div class="sk-ico sk-q">星</div><div class="sk-cd" id="cdQ"></div><div class="sk-key">Q</div><div class="sk-name">星陨</div></div>
+      <div class="skill small" data-k="J"><div class="sk-ico sk-j">刃</div><div class="sk-key">J</div></div>
+      <div class="skill small" data-k="SP"><div class="sk-ico sk-sp">疾</div><div class="sk-key">⇧</div></div>
+    </div>
+
+    <div id="fragTag" class="hidden"><span id="fragCount">0</span><em>残响</em><b>/ 12</b></div>
+
+    <div id="interact" class="hidden"><span class="ikey">F</span><span class="itext" id="interactText"></span></div>
+    <div id="hint" class="hidden"></div>
+    <div id="toasts"></div>
+    <div id="dmgLayer"></div>
+  </div>
+
+  <!-- ============ 对话框 ============ -->
+  <div id="dlg" class="hidden">
+    <div class="dlg-inner">
+      <div class="dlg-portrait"><canvas id="portrait" width="512" height="600"></canvas><i class="pf-glow"></i></div>
+      <div class="dlg-body">
+        <div class="dlg-name"><span id="dlgName">青芜</span><i></i></div>
+        <div class="dlg-text" id="dlgText"></div>
+        <div class="dlg-choices hidden" id="dlgChoices"></div>
+        <div class="dlg-next" id="dlgNext">▼</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 章节卡 ============ -->
+  <div id="banner" class="hidden">
+    <div class="bn-line"></div>
+    <div class="bn-ch" id="bnCh">第一章</div>
+    <div class="bn-title" id="bnTitle">风的碑文</div>
+    <div class="bn-line"></div>
+  </div>
+
+  <!-- ============ 标题 ============ -->
+  <div id="title" class="screen">
+    <div class="t-vig"></div>
+    <div class="t-wrap">
+      <div class="t-side">A STARFALL ODYSSEY</div>
+      <h1 class="t-logo">
+        <span class="t1">拾星纪</span>
+        <span class="t-sub">长 庚</span>
+      </h1>
+      <div class="t-orn"><i></i><b></b><i></i></div>
+      <p class="t-tag">「若无人记得你的名字，你还算活过吗？」</p>
+      <div class="t-menu">
+        <button class="tbtn" id="btnStart"><span>开始旅程</span><em>NEW JOURNEY</em></button>
+        <button class="tbtn ghost" id="btnContinue"><span>继续前行</span><em>CONTINUE</em></button>
+        <button class="tbtn ghost" id="btnHelp"><span>操作指引</span><em>HOW TO PLAY</em></button>
+      </div>
+      <div class="t-foot" id="tFoot">WASD 移动 · Shift 疾行 · J 普攻 · E 听风 · Q 星陨 · F 交互 · Tab 残响图鉴 · M 静音</div>
+    </div>
+    <div class="t-ver">v1.0 · 网页原型 · 键盘游玩</div>
+  </div>
+
+  <!-- ============ 图鉴 ============ -->
+  <div id="journal" class="hidden">
+    <div class="j-wrap">
+      <div class="j-left">
+        <div class="j-title">残 响 录</div>
+        <div class="j-sub">ECHOES OF THE NAMELESS</div>
+        <ul class="j-list" id="jList"></ul>
+        <div class="j-close">Tab / Esc 关闭</div>
+      </div>
+      <div class="j-right">
+        <div class="j-detail" id="jDetail">
+          <div class="j-empty">触碰散落在长庚大地上的「星骸」，<br>可听见被遗忘者留下的最后一句话。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 帮助 ============ -->
+  <div id="help" class="screen hidden">
+    <div class="h-wrap">
+      <h2>行 前 须 知</h2>
+      <div class="h-grid">
+        <div><b>W A S D</b><span>移动</span></div>
+        <div><b>Shift</b><span>疾行（消耗体力）</span></div>
+        <div><b>J / 左键</b><span>三段普攻</span></div>
+        <div><b>E</b><span>听风 · 风元素冲击</span></div>
+        <div><b>Q</b><span>星陨 · 元素爆发（需能量）</span></div>
+        <div><b>F / 空格</b><span>交互 · 拾取 · 对话</span></div>
+        <div><b>Tab</b><span>残响图鉴</span></div>
+        <div><b>M</b><span>静音</span></div>
+      </div>
+      <p class="h-tip">长庚没有小地图之外的路标。若迷路，抬头看星光——任务所指之处，会有一道落下的星芒。</p>`r`n      <p class="h-tip touch-only">触屏：左半屏按住拖动移动 · 右下「攻 / 风 / 星 / 疾」· 靠近物体时出现「触」· 轻触画面推进对话</p>
+      <button class="tbtn" id="btnHelpClose"><span>知道了</span></button>
+    </div>
+  </div>
+
+  <!-- ============ 结局 ============ -->
+  <div id="ending" class="hidden">
+    <div class="e-wrap">
+      <div class="e-ch" id="eCh">终 章</div>
+      <h2 class="e-title" id="eTitle"></h2>
+      <div class="e-orn"><i></i><b></b><i></i></div>
+      <div class="e-body" id="eBody"></div>
+      <div class="e-foot" id="eFoot"></div>
+      <button class="tbtn" id="btnRestart"><span>重新开始</span></button>
+    </div>
+  </div>
+
+  <!-- ============ 触屏控件 ============ -->
+  <div id="touch" class="hidden">
+    <div id="stickZone"></div>
+    <div id="stick" class="hidden"><i id="knob"></i></div>
+    <div class="tbLayer">
+      <button class="tb tb-attack" id="tbAttack" aria-label="攻击">攻</button>
+      <button class="tb tb-skill" id="tbSkill" aria-label="听风">风</button>
+      <button class="tb tb-burst" id="tbBurst" aria-label="星陨">星</button>
+      <button class="tb tb-dash" id="tbDash" aria-label="疾行">疾</button>
+      <button class="tb tb-interact hidden" id="tbInteract" aria-label="交互">触</button>
+    </div>
+    <div id="rotateHint">横屏体验更佳</div>
+  </div>
+
+  <div id="fade" class="fade"></div>
+  <div id="boot">正在编织星图……</div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/world.js"></script>
+<script src="js/render.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/game.js"></script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script></body>
+</html>
